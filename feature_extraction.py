@@ -53,14 +53,14 @@ class question_pair_feature_extraction(object):
         compare word n-grams in both sentences using Jaccard Similarity Coefficient
         Weighing n-grams using a sum of IDF values of words in n-gram
         Containment coefficient is used for orders n belongs to {1, 2}
-        C(J, B) = |S(A, w) union S(B, w)| / |S(A, w)|, here w = 1, 2 corresponding to 1-gram and 2-gram
+        C(J, B) = |S(A, w) intersection S(B, w)| / |S(A, w)|, here w = 1, 2 corresponding to 1-gram and 2-gram
         This weighing significantly improves performances according to the paper
-        J(A, B) = |A union B| / (|A| + |B| - |A union B|)
+        J(A, B) = |A intersection B| / (|A| + |B| - |A intersection B|)
         if A and B are both empty, we define J(A, B) = 1
         Also use information about the length of Longest Common Sub-sequence compared to the length of the sentences
         :return: a float, or a tuple of 4 float between (0, 1)
         """
-        # TODO: more length features can be utilized: A union B, A - B, B - A, A U B / A, A U B / B
+        # TODO: more length features can be utilized: A intersection B, A - B, B - A, A U B / A, A U B / B
         #(TODO) how does LCS combines to this feature?
         LCS = self.longest_common_subsequence()
         #print (LCS)
@@ -75,19 +75,19 @@ class question_pair_feature_extraction(object):
         print(uni_overlap, bi_overlap, tri_overlap, quad_overlap)
 
     def jaccard_similarity_coefficient(self, set1, set2):
-        overlap = len(set1.union(set2))
+        overlap = len(set1.intersection(set2))
         return overlap * 1.0 / (len(set1) + len(set2) - overlap)
 
     def jaccard_similarity_coefficient_with_weight(self, set1, set2):
-        overlap = set1.union(set2)
+        overlap = set1.intersection(set2)
         overlap_weight = sum([tfidf_count.get(w, math.log(N)) for w in overlap])
         return overlap_weight * 1.0 / (sum([tfidf_count.get(a, math.log(N)) for a in set1]) + sum([tfidf_count.get(b, math.log(N)) for b in set2]) - overlap_weight)
 
     def containment_similarity_coefficient(self, set1, set2):
-        return len(set1.union(set2)) * 1.0 / len(set1)
+        return len(set1.intersection(set2)) * 1.0 / len(set1)
 
     def containment_similarity_coefficient_with_weight(self, set1, set2):
-        overlap = set1.union(set2)
+        overlap = set1.intersection(set2)
         overlap_weight = sum([tfidf_count.get(w, math.log(N)) for w in overlap])
         return overlap_weight * 1.0 / sum([tfidf_count.get(a, math.log(N)) for a in set1])
 
@@ -211,7 +211,7 @@ class question_pair_feature_extraction(object):
 
     def co_occurrence_retrieval_model(self):
         """
-        Sim_CRM(w1, w2) = 2 * |c(w1) union c(w2)| / (|c(w1)| + |c(w2)|)
+        Sim_CRM(w1, w2) = 2 * |c(w1) intersection c(w2)| / (|c(w1)| + |c(w2)|)
         """
         pass
 
