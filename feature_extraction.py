@@ -19,9 +19,10 @@ with open(fname, 'r') as f:
 
 # open the ppdb data
 fname = 'ppdb/ppdb-output.json'
-with open(fname,'r') as f:
+with open(fname, 'r') as f:
     f = f.read()
     ppdb = json.loads(f)
+
 
 class question_pair_feature_extraction(object):
     def __init__(self, q1, q2):
@@ -80,7 +81,7 @@ class question_pair_feature_extraction(object):
             set(self.trigram_q1), set(self.trigram_q2))
         quad_overlap = self.jaccard_similarity_coefficient_with_weight(
             set(self.quadgram_q1), set(self.quadgram_q2))
-        print(uni_overlap, bi_overlap, tri_overlap, quad_overlap)
+        return uni_overlap, bi_overlap, tri_overlap, quad_overlap
 
     def jaccard_similarity_coefficient(self, set1, set2):
         overlap = len(set1.intersection(set2))
@@ -88,7 +89,8 @@ class question_pair_feature_extraction(object):
 
     def jaccard_similarity_coefficient_with_weight(self, set1, set2):
         overlap = set1.intersection(set2)
-        overlap_weight = sum([tfidf_count.get(w, math.log(N)) for w in overlap])
+        overlap_weight = sum([tfidf_count.get(w, math.log(N))
+                              for w in overlap])
         return overlap_weight * 1.0 / (sum([tfidf_count.get(a, math.log(N)) for a in set1]) + sum([tfidf_count.get(b, math.log(N)) for b in set2]) - overlap_weight)
 
     def containment_similarity_coefficient(self, set1, set2):
@@ -96,7 +98,8 @@ class question_pair_feature_extraction(object):
 
     def containment_similarity_coefficient_with_weight(self, set1, set2):
         overlap = set1.intersection(set2)
-        overlap_weight = sum([tfidf_count.get(w, math.log(N)) for w in overlap])
+        overlap_weight = sum([tfidf_count.get(w, math.log(N))
+                              for w in overlap])
         return overlap_weight * 1.0 / sum([tfidf_count.get(a, math.log(N)) for a in set1])
 
     def pos_n_gram_overlaps(self):
@@ -126,7 +129,7 @@ class question_pair_feature_extraction(object):
         pos_quad_q2 = set(ngrams(pos_list_q2, 4))
         quad_overlap = self.jaccard_similarity_coefficient(
             pos_quad_q1, pos_quad_q2)
-        print(uni_overlap, bi_overlap, tri_overlap, quad_overlap)
+        return uni_overlap, bi_overlap, tri_overlap, quad_overlap
 
     def gst(self, a, b, minlength=2):
         """
@@ -192,8 +195,10 @@ class question_pair_feature_extraction(object):
         tf_idf2 = []
         idf_no_occurence = math.log(N)
         for word in word_set:
-            tf_idf1.append(self.unigram_q1.get(word, 0) * tfidf_count.get(word, idf_no_occurence) * 1.0)
-            tf_idf2.append(self.unigram_q2.get(word, 0) * tfidf_count.get(word, idf_no_occurence) * 1.0)
+            tf_idf1.append(self.unigram_q1.get(word, 0) *
+                           tfidf_count.get(word, idf_no_occurence) * 1.0)
+            tf_idf2.append(self.unigram_q2.get(word, 0) *
+                           tfidf_count.get(word, idf_no_occurence) * 1.0)
         cosine = 0
         for i in range(len(word_set)):
             cosine += tf_idf1[i] * tf_idf2[i]
@@ -273,20 +278,78 @@ class question_pair_feature_extraction(object):
             for word in s:
                 score = tfidf_count.get(word, no_show_score)
                 total += score
+            return total
+        def remove_words(word_list,remove_list):
+            for word in remove_list:
+                try:
+                    word_list.remove(word)
+                except:
+                    continue
         sum_q1 = omega(self.q1_wordlist)
         sum_q2 = omega(self.q2_wordlist)
+        words1 = self.q1_wordlist[:]
+        words2 = self.q2_wordlist[:]
+        set1 = []
+        set2 = []
+        # test if a word is in q2
+        for word in words1:
+            if word in words2:
+                set1.append(word)
+                set2.append(word)
+        remove_words(words1,set1)
+        remove_words(words2,set2)
+        # test if a paraphrase of a word is in q2
+        for word in words1:
+            paraphrase_list = ppdb.get(word, [])
+            if len(paraphrase_list) != 0:
+                for word_ in words2:
+                    if word_ in paraphrase_list:
+                        set1.append(word)
+                        set2.append(word_)
+                        print (word,word_)
+                    break
+        remove_words(words1,set1)
+        remove_words(words2,set2)
+        # test if the remaining words in q2 is in q1
+        for word in words2:
+            paraphrase_list = ppdb.get(word, [])
+            if len(paraphrase_list) != 0:
+                for word_ in words1:
+                    if word_ in paraphrase_list:
+                        set1.append(word_)
+                        set2.append(word)
+                        print (word,word_)
+                    break
+        remove_words(words1,set1)
+        remove_words(words2,set2)
+        sum_set1 = omega(set1) * 1.0
+        sum_set2 = omega(set2) * 1.0
+        return (sum_set1 + sum_set2) / (sum_q1 + sum_q2)
 
-def generate_feature_vectors(self, fname):
-    features_header = ["q1", "q2","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "ch_overlap", "tfidf"]
+# test cases
+s = question_pair_feature_extraction('What is the step by step guide to invest in share market in india?','What is the step by step guide to invest in share market?')
+print (s.word_alignment())
+s = question_pair_feature_extraction('Method to find separation of slits using fresnel biprism?','What are some of the things technicians can tell about the durability and reliability of Laptops and its components?')
+print (s.word_alignment())
+
+
+def generate_feature_vectors(fname):
+    features_header = ["q1", "q2","result","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "tfidf", "word_alignment"]
     feature_output_df = pd.DataFrame(columns = features_header)
+    start = time.time()
     with open(fname, 'r') as f:
         for line in f.readlines()[1:]:
             _id, qid1, qid2, q1, q2, is_duplicate = line.strip().split("\t")
             pair_obj = question_pair_feature_extraction(q1, q2)
             lemma1, lemma2, lemma3, lemma4 = pair_obj.lemma_n_gram_overlaps()
             pos1, pos2, pos3, pos4 = pair_obj.pos_n_gram_overlaps()
-            ch_overlap = pair_obj.character_n_gram_overlaps()
+            #ch_overlap = pair_obj.character_n_gram_overlaps()
             tfidf = pair_obj.tf_idf()
-            entry = [q1, q2, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, ch_overlap, tfidf]
+            word_alignment = pair_obj.word_alignment()
+            entry = [q1, q2, is_duplicate, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, tfidf, word_alignment]
+            current_time = time.time()
+            #print "time:", current_time - start
+            start = current_time
+            #print entry
             feature_output_df.loc[len(feature_output_df)] = entry
     feature_output_df.to_csv('feature_output.csv')

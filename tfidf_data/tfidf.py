@@ -16,7 +16,6 @@ def strip_punctuations(word):
 def count_idf(lines):
     c = Counter()
     total_count = len(lines)*2
-    c['total_count_of_corpus'] = total_count
     for line in lines:
         try:
             sentence1 = [strip_punctuations(word) for word in line.split('\t')[3].split()]
@@ -32,6 +31,9 @@ def count_idf(lines):
             c[w] += 1
     for key in c.keys():
         c[key] = math.log(float(total_count)/c[key])
+    # print (total_count)
+    c['total_count_of_corpus'] += total_count
+    # print (c['total_count_of_corpus'])
     return c
 
 with open(fname, 'r') as f:
