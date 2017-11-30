@@ -8,17 +8,25 @@ import tf_glove
 import gensim
 import json
 import math
-fname = 'tfidf1_2_3_4.json'
+import pandas as pd
+
+# open the tfidf data
+fname = 'tfidf_data/tfidf1_2_3_4.json'
 with open(fname, 'r') as f:
     f = f.read()
     tfidf_count = json.loads(f)
-    N = sum(tfidf_count.values())
+    N = tfidf_count['total_count_of_corpus']
 
+# open the ppdb data
+fname = 'ppdb/ppdb-output.json'
+with open(fname,'r') as f:
+    f = f.read()
+    ppdb = json.loads(f)
 
 class question_pair_feature_extraction(object):
-    def __init__(self):
-        self.q1 = "What is the story of Kohinoor (Koh-i-Noor) Diamond?"
-        self.q2 = "What would happen if the Indian government stole the Kohinoor (Koh-i-Noor) diamond back?"
+    def __init__(self, q1, q2):
+        self.q1 = q1
+        self.q2 = q2
         self.q1 = self.q1.lower()
         self.q2 = self.q2.lower()
         # self.q1_wordlist = []
@@ -171,6 +179,7 @@ class question_pair_feature_extraction(object):
         bigram_overlap = self.gst(self.bigram_list_q1, self.bigram_list_q2)
         ch_overlap = len(bigram_overlap) * 1.0 / len(self.bigram_q1)
         #print (ch_overlap)
+        return ch_overlap
 
     def tf_idf(self):
         """
@@ -257,6 +266,27 @@ class question_pair_feature_extraction(object):
         Sul- tan et al., 2014a; Sultan et al., 2014b; Sultan et al., 2015
         :return:
         """
-        pass
-s = question_pair_feature_extraction()
-s.lemma_n_gram_overlaps()
+        # define the function to calculate the total idf score of a set of words
+        def omega(s):
+            total = 0
+            no_show_score = math.log(N)
+            for word in s:
+                score = tfidf_count.get(word, no_show_score)
+                total += score
+        sum_q1 = omega(self.q1_wordlist)
+        sum_q2 = omega(self.q2_wordlist)
+
+def generate_feature_vectors(self, fname):
+    features_header = ["q1", "q2","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "ch_overlap", "tfidf"]
+    feature_output_df = pd.DataFrame(columns = features_header)
+    with open(fname, 'r') as f:
+        for line in f.readlines()[1:]:
+            _id, qid1, qid2, q1, q2, is_duplicate = line.strip().split("\t")
+            pair_obj = question_pair_feature_extraction(q1, q2)
+            lemma1, lemma2, lemma3, lemma4 = pair_obj.lemma_n_gram_overlaps()
+            pos1, pos2, pos3, pos4 = pair_obj.pos_n_gram_overlaps()
+            ch_overlap = pair_obj.character_n_gram_overlaps()
+            tfidf = pair_obj.tf_idf()
+            entry = [q1, q2, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, ch_overlap, tfidf]
+            feature_output_df.loc[len(feature_output_df)] = entry
+    feature_output_df.to_csv('feature_output.csv')
