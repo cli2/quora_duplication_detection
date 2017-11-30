@@ -9,6 +9,10 @@ import gensim
 import json
 import math
 import pandas as pd
+import sys
+import time
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 # open the tfidf data
 fname = 'tfidf_data/tfidf1_2_3_4.json'
