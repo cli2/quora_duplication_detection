@@ -12,8 +12,8 @@ import pandas as pd
 import sys
 import time
 import numpy as np
-# reload(sys)
-# sys.setdefaultencoding("utf-8")
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 # open the tfidf data
 fname = 'tfidf_data/tfidf1_2_3_4.json'
@@ -370,13 +370,13 @@ class question_pair_feature_extraction(object):
 
 # test cases
 s = question_pair_feature_extraction('What is the step by step guide to invest in share market in india?','What is the step by step guide to invest in share market?')
-print (s.semantic_composition())
+#print (s.semantic_composition())
 s = question_pair_feature_extraction('Method to find separation of slits using fresnel biprism?','What are some of the things technicians can tell about the durability and reliability of Laptops and its components?')
-print (s.semantic_composition())
+#print (s.semantic_composition())
 
 
 def generate_feature_vectors(fname):
-    features_header = ["q1", "q2","result","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "tfidf", "word_alignment"]
+    features_header = ["q1", "q2","result","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "tfidf", "word_alignment", "semantic_composition"]
     feature_output_df = pd.DataFrame(columns = features_header)
     start = time.time()
     with open(fname, 'r') as f:
@@ -388,7 +388,8 @@ def generate_feature_vectors(fname):
             # ch_overlap = pair_obj.character_n_gram_overlaps()
             tfidf = pair_obj.tf_idf()
             word_alignment = pair_obj.word_alignment()
-            entry = [q1, q2, is_duplicate, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, tfidf, word_alignment]
+            semantic_composition = pair_obj.semantic_composition()
+            entry = [q1, q2, is_duplicate, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, tfidf, word_alignment, semantic_composition]
             current_time = time.time()
             # print "time:", current_time - start
             start = current_time
