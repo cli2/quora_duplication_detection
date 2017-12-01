@@ -11,8 +11,9 @@ import math
 import pandas as pd
 import sys
 import time
-reload(sys)
-sys.setdefaultencoding("utf-8")
+import numpy as np
+# reload(sys)
+# sys.setdefaultencoding("utf-8")
 
 # open the tfidf data
 fname = 'tfidf_data/tfidf1_2_3_4.json'
@@ -26,6 +27,24 @@ fname = 'ppdb/ppdb-output.json'
 with open(fname, 'r') as f:
     f = f.read()
     ppdb = json.loads(f)
+
+# open the glove data
+fname = 'glove/glove_dict_A_I.json'
+with open(fname, 'r') as f:
+    f = f.read()
+    glove_dict_A_I = json.loads(f)
+fname = 'glove/glove_dict_J_S.json'
+with open(fname, 'r') as f:
+    f = f.read()
+    glove_dict_J_S = json.loads(f)
+fname = 'glove/glove_dict_T_Z.json'
+with open(fname, 'r') as f:
+    f = f.read()
+    glove_dict_T_Z = json.loads(f)
+fname = 'glove/glove_else.json'
+with open(fname, 'r') as f:
+    f = f.read()
+    glove_else = json.loads(f)
 
 
 class question_pair_feature_extraction(object):
@@ -76,7 +95,7 @@ class question_pair_feature_extraction(object):
         # TODO: more length features can be utilized: A intersection B, A - B, B - A, A U B / A, A U B / B
         #(TODO) how does LCS combines to this feature?
         LCS = self.longest_common_subsequence()
-        #print (LCS)
+        # print (LCS)
         uni_overlap = self.containment_similarity_coefficient_with_weight(
             set(self.unigram_q1), set(self.unigram_q2))
         bi_overlap = self.containment_similarity_coefficient_with_weight(
@@ -185,7 +204,7 @@ class question_pair_feature_extraction(object):
         #(TODO) the GST algorithm is a little bit complicated, we can see if this feature is necessary
         bigram_overlap = self.gst(self.bigram_list_q1, self.bigram_list_q2)
         ch_overlap = len(bigram_overlap) * 1.0 / len(self.bigram_q1)
-        #print (ch_overlap)
+        # print (ch_overlap)
         return ch_overlap
 
     def tf_idf(self):
@@ -244,7 +263,26 @@ class question_pair_feature_extraction(object):
         :return: float
         """
         # (TODO) Learn all corpus and generate the vector or just learn current sentence pair?
-        pass
+        words1 = self.q1_wordlist[:]
+        words2 = self.q2_wordlist[:]
+        unknown = (np.random.rand(1,50)-0.5)/2.0
+        def calculate_vector(word_list):
+            idf_no_occurence = math.log(N)
+            vector = np.zeros((1, 50))
+            for word in words_list:
+                ind = ord(word[0])
+                if ind >= 65 and ind <= 73 or ind >= 97 and ind <= 105:
+                    vector += np.array(glove_dict_A_I.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+                elif ind >= 74 and ind <= 83 or ind >= 106 and ind <= 115:
+                    vector += np.aaray(glove_dict_J_S.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+                elif ind >= 84 and ind <= 96 or ind >= 116 and ind <= 122:
+                    vector += np.array(glove_dict_T_Z.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+                else:
+                    vector += np.array(glove_else.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+            return vector
+        vector1 = calculate_vector(words1)
+        vector2 = calculate_vector(words2)
+        return np.dot(vector1, vector2) * 1.0 / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
 
     def paragraph_to_vec(self):
         """
@@ -347,13 +385,13 @@ def generate_feature_vectors(fname):
             pair_obj = question_pair_feature_extraction(q1, q2)
             lemma1, lemma2, lemma3, lemma4 = pair_obj.lemma_n_gram_overlaps()
             pos1, pos2, pos3, pos4 = pair_obj.pos_n_gram_overlaps()
-            #ch_overlap = pair_obj.character_n_gram_overlaps()
+            # ch_overlap = pair_obj.character_n_gram_overlaps()
             tfidf = pair_obj.tf_idf()
             word_alignment = pair_obj.word_alignment()
             entry = [q1, q2, is_duplicate, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, tfidf, word_alignment]
             current_time = time.time()
-            #print "time:", current_time - start
+            # print "time:", current_time - start
             start = current_time
-            #print entry
+            # print entry
             feature_output_df.loc[len(feature_output_df)] = entry
     feature_output_df.to_csv('feature_output.csv')
