@@ -61,3 +61,5 @@ with open('tfidf1_2_3_5.json','w') as f:
     f.write(json.dumps(count_idf(set4)))
 with open('tfidf1_2_3_4.json','w') as f:
     f.write(json.dumps(count_idf(set5)))
+with open('tfidf_all.json','w') as f:
+    f.write(json.dumps(count_idf(lines)))

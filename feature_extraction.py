@@ -12,8 +12,8 @@ import pandas as pd
 import sys
 import time
 import numpy as np
-reload(sys)
-sys.setdefaultencoding("utf-8")
+# reload(sys)
+# sys.setdefaultencoding("utf-8")
 
 # open the tfidf data
 fname = 'tfidf_data/tfidf1_2_3_4.json'
