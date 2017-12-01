@@ -29,19 +29,19 @@ with open(fname, 'r') as f:
     ppdb = json.loads(f)
 
 # open the glove data
-fname = 'glove/glove_dict_A_I.json'
+fname = 'glove_parse/glove_dict_A_I.json'
 with open(fname, 'r') as f:
     f = f.read()
     glove_dict_A_I = json.loads(f)
-fname = 'glove/glove_dict_J_S.json'
+fname = 'glove_parse/glove_dict_J_S.json'
 with open(fname, 'r') as f:
     f = f.read()
     glove_dict_J_S = json.loads(f)
-fname = 'glove/glove_dict_T_Z.json'
+fname = 'glove_parse/glove_dict_T_Z.json'
 with open(fname, 'r') as f:
     f = f.read()
     glove_dict_T_Z = json.loads(f)
-fname = 'glove/glove_else.json'
+fname = 'glove_parse/glove_else.json'
 with open(fname, 'r') as f:
     f = f.read()
     glove_else = json.loads(f)
@@ -269,19 +269,19 @@ class question_pair_feature_extraction(object):
         def calculate_vector(word_list):
             idf_no_occurence = math.log(N)
             vector = np.zeros((1, 50))
-            for word in words_list:
+            for word in word_list:
                 ind = ord(word[0])
                 if ind >= 65 and ind <= 73 or ind >= 97 and ind <= 105:
-                    vector += np.array(glove_dict_A_I.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+                    vector += np.array(glove_dict_A_I.get(word,unknown)) * tfidf_count.get(word, idf_no_occurence)
                 elif ind >= 74 and ind <= 83 or ind >= 106 and ind <= 115:
-                    vector += np.aaray(glove_dict_J_S.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+                    vector += np.array(glove_dict_J_S.get(word,unknown)) * tfidf_count.get(word, idf_no_occurence)
                 elif ind >= 84 and ind <= 96 or ind >= 116 and ind <= 122:
-                    vector += np.array(glove_dict_T_Z.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+                    vector += np.array(glove_dict_T_Z.get(word,unknown)) * tfidf_count.get(word, idf_no_occurence)
                 else:
-                    vector += np.array(glove_else.get(word,unknow)) * tfidf_count.get(word, idf_no_occurence)
+                    vector += np.array(glove_else.get(word,unknown)) * tfidf_count.get(word, idf_no_occurence)
             return vector
-        vector1 = calculate_vector(words1)
-        vector2 = calculate_vector(words2)
+        vector1 = np.squeeze(np.asarray(calculate_vector(words1)))
+        vector2 = np.squeeze(np.asarray(calculate_vector(words2)))
         return np.dot(vector1, vector2) * 1.0 / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
 
     def paragraph_to_vec(self):
@@ -370,9 +370,9 @@ class question_pair_feature_extraction(object):
 
 # test cases
 s = question_pair_feature_extraction('What is the step by step guide to invest in share market in india?','What is the step by step guide to invest in share market?')
-print (s.word_alignment())
+print (s.semantic_composition())
 s = question_pair_feature_extraction('Method to find separation of slits using fresnel biprism?','What are some of the things technicians can tell about the durability and reliability of Laptops and its components?')
-print (s.word_alignment())
+print (s.semantic_composition())
 
 
 def generate_feature_vectors(fname):
