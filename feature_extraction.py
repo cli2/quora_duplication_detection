@@ -12,11 +12,15 @@ import pandas as pd
 import sys
 import time
 import numpy as np
+import sys
+tfidf_file_path=sys.argv[1]
+result_file_path=sys.argv[2]
+resultfile=open(result_file_path,'w')
 # reload(sys)
 # sys.setdefaultencoding("utf-8")
 
 # open the tfidf data
-fname = 'tfidf_data/tfidf1_2_3_4.json'
+fname = 'tfidf_data/'+tfidf_file_path
 with open(fname, 'r') as f:
     f = f.read()
     tfidf_count = json.loads(f)
@@ -356,7 +360,7 @@ class question_pair_feature_extraction(object):
                     if word_ in paraphrase_list:
                         set1.append(word)
                         set2.append(word_)
-                        print (word,word_)
+                        # print (word,word_)
                     break
         remove_words(words1,set1)
         remove_words(words2,set2)
@@ -368,7 +372,7 @@ class question_pair_feature_extraction(object):
                     if word_ in paraphrase_list:
                         set1.append(word_)
                         set2.append(word)
-                        print (word,word_)
+                        # print (word,word_)
                     break
         remove_words(words1,set1)
         remove_words(words2,set2)
@@ -382,32 +386,57 @@ s = question_pair_feature_extraction('What is the step by step guide to invest i
 s = question_pair_feature_extraction('Method to find separation of slits using fresnel biprism?','What are some of the things technicians can tell about the durability and reliability of Laptops and its components?')
 #print (s.semantic_composition())
 
-def get_empty_feature(q1, q2, is_duplicate):
-    return [q1, q2, is_duplicate, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+def get_empty_feature(_id,q1, q2, is_duplicate):
+    return [_id,q1, q2, is_duplicate, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 def generate_feature_vectors(fname):
-    features_header = ["q1", "q2","result","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "tfidf", "word_alignment", "semantic_composition"]
+    features_header = ["id","q1", "q2","result","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "tfidf", "word_alignment", "semantic_composition"]
     feature_output_df = pd.DataFrame(columns = features_header)
     start = time.time()
     with open(fname, 'r') as f:
-        for line in f.readlines()[1:]:
-            _id, qid1, qid2, q1, q2, is_duplicate = line.strip().split("\t")
-            q1 = "."
-            q2 = "This is a test"
-            if len(q1) <= 1 or len(q2) <= 1:
-                print ("Case %s is a pair of invalid sentence, output empty feature to file" %_id)
-                feature_output_df.loc[len(feature_output_df)] = get_empty_feature(q1, q2, is_duplicate)
-                continue
-            pair_obj = question_pair_feature_extraction(q1, q2)
-            lemma1, lemma2, lemma3, lemma4 = pair_obj.lemma_n_gram_overlaps()
-            pos1, pos2, pos3, pos4 = pair_obj.pos_n_gram_overlaps()
-            # ch_overlap = pair_obj.character_n_gram_overlaps()
-            tfidf = pair_obj.tf_idf()
-            word_alignment = pair_obj.word_alignment()
-            semantic_composition = pair_obj.semantic_composition()
-            entry = [q1, q2, is_duplicate, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, tfidf, word_alignment, semantic_composition]
+        lines = f.readlines()[1:]
+        # lines = f.readlines()[1:3000]
+        count = len(lines)
+        one_set = math.ceil(count/5.0)
+        line1 = lines[:one_set+1]
+        line2 = lines[one_set+1:one_set*2+1]
+        line3 = lines[one_set*2+1:one_set*3+1]
+        line4 = lines[one_set*3+1:one_set*4+1]
+        line5 = lines[one_set*4+1:]
+        _id=0
+        line_all=[line1,line2,line3,line4,line5]
+        for num in range(0,5):
+            linechunck=line_all[num]
+            start=time.time()
+            for line in linechunck:
+                q1, q2, is_duplicate = line.strip().split("\t")
+                if len(q1) <= 1 or len(q2) <= 1:
+                    # print ("Case %s is a pair of invalid sentence, output empty feature to file" %_id)
+                    feature_output_df.loc[len(feature_output_df)] = get_empty_feature(_id,q1, q2, is_duplicate)
+                    continue
+                pair_obj = question_pair_feature_extraction(q1, q2)
+                lemma1, lemma2, lemma3, lemma4 = pair_obj.lemma_n_gram_overlaps()
+                pos1, pos2, pos3, pos4 = pair_obj.pos_n_gram_overlaps()
+                # ch_overlap = pair_obj.character_n_gram_overlaps()
+                tfidf = pair_obj.tf_idf()
+                word_alignment = pair_obj.word_alignment()
+                semantic_composition = pair_obj.semantic_composition()
+                entry = [_id,q1, q2, is_duplicate, lemma1, lemma2, lemma3, lemma4, pos1, pos2, pos3, pos4, tfidf, word_alignment, semantic_composition]
+                current_time = time.time()
+                # print "time:", current_time - start
+                start = current_time
+                # print entry
+                feature_output_df.loc[len(feature_output_df)] = entry
+                _id+=1
+                if int(_id)%1000==0:
+                    print (_id)
+            if num==0:
+                feature_output_df.to_csv(result_file_path, mode = 'a')
+            else:
+                feature_output_df.to_csv(result_file_path, mode = 'a',header=False)
+            feature_output_df = pd.DataFrame(columns = features_header)
             current_time = time.time()
-            # print "time:", current_time - start
-            start = current_time
-            # print entry
-            feature_output_df.loc[len(feature_output_df)] = entry
-    feature_output_df.to_csv('feature_output.csv', mode = 'a')
+            print ("time:", current_time - start)
+            print ('finish one line chunck')
+
+generate_feature_vectors('quora_lstm.tsv')
+# generate_feature_vectors('quora_duplicate_questions.tsv')
