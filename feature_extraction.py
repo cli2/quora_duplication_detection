@@ -391,6 +391,8 @@ def generate_feature_vectors(fname):
     with open(fname, 'r') as f:
         for line in f.readlines()[1:]:
             _id, qid1, qid2, q1, q2, is_duplicate = line.strip().split("\t")
+            q1 = "."
+            q2 = "This is a test"
             if len(q1) <= 1 or len(q2) <= 1:
                 print ("Case %s is a pair of invalid sentence, output empty feature to file" %_id)
                 feature_output_df.loc[len(feature_output_df)] = get_empty_feature(q1, q2, is_duplicate)
@@ -408,4 +410,4 @@ def generate_feature_vectors(fname):
             start = current_time
             # print entry
             feature_output_df.loc[len(feature_output_df)] = entry
-    feature_output_df.to_csv('feature_output.csv')
+    feature_output_df.to_csv('feature_output.csv', mode = 'a')
