@@ -107,19 +107,27 @@ class question_pair_feature_extraction(object):
         return uni_overlap, bi_overlap, tri_overlap, quad_overlap
 
     def jaccard_similarity_coefficient(self, set1, set2):
+        if not set1 or not set2 or len(set1) <= 1 or len(set2) <= 1:
+            return 0.0
         overlap = len(set1.intersection(set2))
         return overlap * 1.0 / (len(set1) + len(set2) - overlap)
 
     def jaccard_similarity_coefficient_with_weight(self, set1, set2):
+        if not set1 or not set2 or len(set1) <= 1 or len(set2) <= 1:
+            return 0.0
         overlap = set1.intersection(set2)
         overlap_weight = sum([tfidf_count.get(w, math.log(N))
                               for w in overlap])
         return overlap_weight * 1.0 / (sum([tfidf_count.get(a, math.log(N)) for a in set1]) + sum([tfidf_count.get(b, math.log(N)) for b in set2]) - overlap_weight)
 
     def containment_similarity_coefficient(self, set1, set2):
+        if not set1 or not set2 or len(set1) <= 1 or len(set2) <= 1:
+            return 0.0
         return len(set1.intersection(set2)) * 1.0 / len(set1)
 
     def containment_similarity_coefficient_with_weight(self, set1, set2):
+        if not set1 or not set2 or len(set1) <= 1 or len(set2) <= 1:
+            return 0.0
         overlap = set1.intersection(set2)
         overlap_weight = sum([tfidf_count.get(w, math.log(N))
                               for w in overlap])
@@ -374,7 +382,8 @@ s = question_pair_feature_extraction('What is the step by step guide to invest i
 s = question_pair_feature_extraction('Method to find separation of slits using fresnel biprism?','What are some of the things technicians can tell about the durability and reliability of Laptops and its components?')
 #print (s.semantic_composition())
 
-
+def get_empty_feature(q1, q2, is_duplicate):
+    return [q1, q2, is_duplicate, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 def generate_feature_vectors(fname):
     features_header = ["q1", "q2","result","lemma1", "lemma2", "lemma3", "lemma4", "pos1", "pos2", "pos3", "pos4", "tfidf", "word_alignment", "semantic_composition"]
     feature_output_df = pd.DataFrame(columns = features_header)
@@ -382,6 +391,10 @@ def generate_feature_vectors(fname):
     with open(fname, 'r') as f:
         for line in f.readlines()[1:]:
             _id, qid1, qid2, q1, q2, is_duplicate = line.strip().split("\t")
+            if len(q1) <= 1 or len(q2) <= 1:
+                print ("Case %s is a pair of invalid sentence, output empty feature to file" %_id)
+                feature_output_df.loc[len(feature_output_df)] = get_empty_feature(q1, q2, is_duplicate)
+                continue
             pair_obj = question_pair_feature_extraction(q1, q2)
             lemma1, lemma2, lemma3, lemma4 = pair_obj.lemma_n_gram_overlaps()
             pos1, pos2, pos3, pos4 = pair_obj.pos_n_gram_overlaps()
