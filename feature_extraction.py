@@ -394,6 +394,7 @@ def generate_feature_vectors(fname):
     start = time.time()
     with open(fname, 'r') as f:
         lines = f.readlines()[1:]
+        # lines = f.readlines()[1:3000]
         count = len(lines)
         one_set = math.ceil(count/5.0)
         line1 = lines[:one_set+1]
@@ -401,12 +402,13 @@ def generate_feature_vectors(fname):
         line3 = lines[one_set*2+1:one_set*3+1]
         line4 = lines[one_set*3+1:one_set*4+1]
         line5 = lines[one_set*4+1:]
+        _id=0
         line_all=[line1,line2,line3,line4,line5]
         for num in range(0,5):
             linechunck=line_all[num]
             start=time.time()
             for line in linechunck:
-                _id, qid1, qid2, q1, q2, is_duplicate = line.strip().split("\t")
+                q1, q2, is_duplicate = line.strip().split("\t")
                 if len(q1) <= 1 or len(q2) <= 1:
                     # print ("Case %s is a pair of invalid sentence, output empty feature to file" %_id)
                     feature_output_df.loc[len(feature_output_df)] = get_empty_feature(_id,q1, q2, is_duplicate)
@@ -424,6 +426,7 @@ def generate_feature_vectors(fname):
                 start = current_time
                 # print entry
                 feature_output_df.loc[len(feature_output_df)] = entry
+                _id+=1
                 if int(_id)%1000==0:
                     print (_id)
             if num==0:
@@ -435,4 +438,5 @@ def generate_feature_vectors(fname):
             print ("time:", current_time - start)
             print ('finish one line chunck')
 
-generate_feature_vectors('quora_duplicate_questions.tsv')
+generate_feature_vectors('quora_lstm.tsv')
+# generate_feature_vectors('quora_duplicate_questions.tsv')
