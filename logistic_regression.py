@@ -74,3 +74,22 @@ for df in dataframes:
     print "name: ", name
     features_train, features_test, labels_train,labels_test, index_train, index_test = split_data(df)
     logistic_classification_L1(features_train, features_test, labels_train,labels_test, name)
+    
+
+# find out which features are most important in L2 Regression using features set 1
+features_train, features_test, labels_train,labels_test, index_train, index_test = split_data(df1)
+model = LogisticRegression(C=0.01, penalty='l2', tol=0.01)
+rfe = RFE(estimator=model, n_features_to_select=1, step=1)
+rfe = rfe.fit(features_train, labels_train)
+# summarize the selection of the attributes
+print(rfe.support_)
+print(rfe.ranking_)
+
+# find out which features are most important in L1 Regression using features set 1
+features_train, features_test, labels_train,labels_test, index_train, index_test = split_data(df1)
+model = LogisticRegression(C=0.01, penalty='l1', tol=0.01)
+rfe = RFE(estimator=model, n_features_to_select=1, step=1)
+rfe = rfe.fit(features_train, labels_train)
+# summarize the selection of the attributes
+print(rfe.support_)
+print(rfe.ranking_)
