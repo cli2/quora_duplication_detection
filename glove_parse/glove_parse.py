@@ -1,3 +1,5 @@
+# parsing the GloVe dataset into a usable format
+# author: Tianyi Liu
 import json
 # A - I : [65, 73] U [97, 105] U [0, 65] U (122, infinity) => <= 73 or >= 97 and <= 105 and > 122
 # J - S : [74, 83] U [106, 115]
@@ -6,6 +8,7 @@ glove_else = {}
 glove_dict_A_I = {}
 glove_dict_J_S = {}
 glove_dict_T_Z = {}
+# open the GloVe dataset and split it into based on initials, to speed up program running time
 with open('glove.6B.50d.txt', 'r') as glove:
 	for line in glove.readlines():
 		vec = line.strip().split(" ")
@@ -19,7 +22,7 @@ with open('glove.6B.50d.txt', 'r') as glove:
 		else:
 			glove_else[vec[0]] = [float(_) for _ in vec[1:]]
 
-
+# writing into a json format dictionary
 with open('glove_dict_A_I.json', 'w') as f:
 	f.write(json.dumps(glove_dict_A_I))
 

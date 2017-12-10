@@ -1,3 +1,5 @@
+# parsing the ppdb database into a usable format
+# author: Chong Li
 import json
 # open file
 fname = 'ppdb-2.0-s-lexical'

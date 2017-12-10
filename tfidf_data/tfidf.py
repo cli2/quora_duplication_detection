@@ -1,4 +1,5 @@
-# tf-idf file for feature extraction
+# calculating the IDF score for feature extraction
+# author: Chong Li
 from collections import Counter
 import math
 import json
@@ -36,6 +37,7 @@ def count_idf(lines):
     # print (c['total_count_of_corpus'])
     return c
 
+# splitting files for cross validation
 with open(fname, 'r') as f:
     lines = f.readlines()[1:]
     count = len(lines)
@@ -50,7 +52,7 @@ with open(fname, 'r') as f:
     set3 = line1+line2+line4+line5
     set4 = line1+line2+line3+line5
     set5 = line1+line2+line3+line4
-# count_idf(lines)
+# writing into files
 with open('tfidf2_3_4_5.json','w') as f:
     f.write(json.dumps(count_idf(set1)))
 with open('tfidf1_3_4_5.json','w') as f:

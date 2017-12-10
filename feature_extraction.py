@@ -26,13 +26,13 @@ with open(fname, 'r') as f:
     tfidf_count = json.loads(f)
     N = tfidf_count['total_count_of_corpus']
 
-# open the ppdb data
+# open the ppdb data for word alignment
 fname = 'ppdb/ppdb-output.json'
 with open(fname, 'r') as f:
     f = f.read()
     ppdb = json.loads(f)
 
-# open the glove data
+# open the glove data for word embedding
 fname = 'glove_parse/glove_dict_A_I.json'
 with open(fname, 'r') as f:
     f = f.read()
@@ -258,12 +258,6 @@ class question_pair_feature_extraction(object):
                     dp[i + 1][j + 1] = max(dp[i + 1][j], dp[i][j + 1])
         return dp[m][n]
 
-    def co_occurrence_retrieval_model(self):
-        """
-        Sim_CRM(w1, w2) = 2 * |c(w1) intersection c(w2)| / (|c(w1)| + |c(w2)|)
-        """
-        pass
-
     # Semantic Similarity
 
     def semantic_composition(self):
@@ -296,27 +290,6 @@ class question_pair_feature_extraction(object):
         vector2 = np.squeeze(np.asarray(calculate_vector(words2)))
         return np.dot(vector1, vector2) * 1.0 / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
 
-    def paragraph_to_vec(self):
-        """
-        An unsupervised method of learning text representation
-        The paragraph token acts as a memory that remembers what information is missing from the current text
-        Use cosine similarity for comparing two paragraph vectors
-        :return: float
-        """
-        pass
-
-    def tree_LSTM(self):
-        """
-        RNN processes input sentences of variable length via recursive application of a transition function
-        on a hidden state vector ht. For each sentence pair it creates sentence representations hL and hR using
-        Tree LSTM model. Given these representations, model predicts the similarity score using a neural network
-        considering distance and angle between vectors.
-        source: [1] tree-LSTM https://github.com/dasguptar/treelstm.pytorch
-                [2] LSTM using torch: http://pytorch.org/tutorials/beginner/nlp/sequence_models_tutorial.html#sphx-
-                    glr-beginner-nlp-sequence-models-tutorial-py
-        :return: float
-        """
-        pass
 
     def word_alignment(self):
         """
