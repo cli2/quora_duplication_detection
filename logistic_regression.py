@@ -10,7 +10,7 @@ from sklearn.feature_selection import RFE
 from sklearn import svm
 
 count = 0
-for infile in glob.glob('word_embedding_Phoebe/*.csv'):
+for infile in glob.glob('features/*.csv'):
     print ("file: ", infile)
     count += 1
     globals()['df'+str(count)] = pd.read_csv(infile)
