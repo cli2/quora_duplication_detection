@@ -144,7 +144,7 @@ $ python logistic_regression.py
 
 ## Built With
 * [Tensorflow](https://www.tensorflow.org/) - The Siamese LSTM based
-* [Tensorflow](http://scikit-learn.org/) - Used to evaluate our system
+* [Sklearn](http://scikit-learn.org/) - Used to evaluate our system
 
 
 ## Authors
