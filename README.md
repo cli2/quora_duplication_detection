@@ -4,14 +4,14 @@ Quora Duplication Detection
 
 ## Getting Started
 
-This ?readme? provides detailed instructions on how to run get the datasets, extract features, train the features, and evaluate the system.
+This \'readme provides detailed instructions on how to run get the datasets, extract features, train the features, and evaluate the system.
 
 ### Prerequisites
 
 
 In order to run the system, you will need the following packages:
 
-# Python 3.6
+* Python 3.6
 # Tensorflow 1.4.0
 # Nltk 3.2.4
 # Pandas 0.20.3
